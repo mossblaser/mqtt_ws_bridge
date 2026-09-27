@@ -128,7 +128,7 @@ async def mqtt_to_websocket(mqtt_reader, websocket):
         await websocket.close()
 
 
-async def serve_websocket_client(mqtt_host, mqtt_port, websocket, path):
+async def serve_websocket_client(mqtt_host, mqtt_port, websocket, path=None):
     """
     Handle a websocket connection.
     
