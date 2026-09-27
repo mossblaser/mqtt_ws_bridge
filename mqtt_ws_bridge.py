@@ -118,7 +118,7 @@ async def mqtt_to_websocket(mqtt_reader, websocket):
     """
     p = MQTTPacketiser()
     try:
-        while not websocket.closed:
+        while True:
             bytes = await mqtt_reader.read(1)
             if not bytes:
                 break
@@ -128,7 +128,7 @@ async def mqtt_to_websocket(mqtt_reader, websocket):
         await websocket.close()
 
 
-async def serve_websocket_client(mqtt_host, mqtt_port, websocket, path=None):
+async def serve_websocket_client(mqtt_host, mqtt_port, websocket):
     """
     Handle a websocket connection.
     
@@ -152,11 +152,9 @@ async def serve_websocket_client(mqtt_host, mqtt_port, websocket, path=None):
     
     logging.info("Client %s connected", websocket.remote_address)
     try:
-        await asyncio.gather(
-            websocket_to_mqtt(websocket, mqtt_writer),
-            mqtt_to_websocket(mqtt_reader, websocket),
-            return_exceptions=True,
-        )
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(websocket_to_mqtt(websocket, mqtt_writer))
+            tg.create_task(mqtt_to_websocket(mqtt_reader, websocket))
     finally:
         logging.info("Client %s disconnected", websocket.remote_address)
         mqtt_writer.close()
@@ -213,7 +211,7 @@ def main():
         logging.basicConfig(level=logging.INFO)
     
     async def async_main():
-        await websockets.serve(
+        server = await websockets.serve(
             partial(
                 serve_websocket_client,
                 args.mqtt_host,
@@ -223,7 +221,7 @@ def main():
             args.websocket_port,
             subprotocols=["mqtt"],
         )
-        await asyncio.Event().wait()
+        await server.serve_forever()
     asyncio.run(async_main())
 
 
