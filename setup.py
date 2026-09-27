@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="mqtt_ws_bridge",
-    version="0.1.0",
-    packages=find_packages(),
+    version="0.1.2",
+    py_modules=["mqtt_ws_bridge"],
 
     # Metadata for PyPi
     url="https://github.com/mossblaser/mqtt_ws_bridge",

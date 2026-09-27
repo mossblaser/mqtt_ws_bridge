@@ -212,18 +212,19 @@ def main():
     if args.verbose > 0:
         logging.basicConfig(level=logging.INFO)
     
-    start_server = websockets.serve(
-        partial(
-            serve_websocket_client,
-            args.mqtt_host,
-            args.mqtt_port,
-        ),
-        args.websocket_host,
-        args.websocket_port,
-        subprotocols=["mqtt"],
-    )
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
+    async def async_main():
+        await websockets.serve(
+            partial(
+                serve_websocket_client,
+                args.mqtt_host,
+                args.mqtt_port,
+            ),
+            args.websocket_host,
+            args.websocket_port,
+            subprotocols=["mqtt"],
+        )
+        await asyncio.Event().wait()
+    asyncio.run(async_main())
 
 
 if __name__ == "__main__":
